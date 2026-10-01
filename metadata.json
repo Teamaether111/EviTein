@@ -1,0 +1,6 @@
+{
+  "name": "EviTwin Forensic Workstation",
+  "description": "Multi-Vendor DVR/NVR Forensic Analysis Tool for standardized acquisition, recovery, video timestamp normalization, cross-camera timeline correlation, and evidence traceability.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

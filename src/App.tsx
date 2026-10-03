@@ -251,6 +251,8 @@ export default function App() {
               timelineEvents={timelineEvents}
               onOpenTrace={handleOpenTrace}
               onAddBookmark={handleAddBookmark}
+              onSwitchToAIFindings={() => setActiveTab('AI_ANALYSIS')}
+              onSwitchToCompare={() => setActiveTab('COMPARE')}
               onAddNote={(rec, timeStr) => {
                 handleAddNote({
                   analyst: 'Insp. Rajesh Varma',
@@ -294,6 +296,7 @@ export default function App() {
                 setActiveTab('VIEWER');
               }}
               onOpenTrace={handleOpenTrace}
+              onSwitchToStorage={() => setActiveTab('STORAGE')}
             />
           )}
 
@@ -336,7 +339,10 @@ export default function App() {
           )}
 
           {activeTab === 'INTEGRITY' && (
-            <HashVerifier deviceInfo={deviceInfo} />
+            <HashVerifier
+              deviceInfo={deviceInfo}
+              onNavigateToCustody={() => setActiveTab('CUSTODY')}
+            />
           )}
 
           {activeTab === 'COMPARE' && (

@@ -3,15 +3,15 @@ import {
   HardDrive,
   Cpu,
   Lock,
-  Play,
   RotateCw,
   ShieldCheck,
   CheckCircle2,
-  FileCheck,
-  AlertTriangle,
-  Layers,
+  ChevronDown,
+  ChevronUp,
+  ArrowRight,
   Terminal,
-  ArrowRight
+  FileCheck,
+  Info
 } from 'lucide-react';
 import { DeviceInfo, VendorId } from '../../types/forensics';
 import { VENDOR_ADAPTERS } from '../../data/mockForensicData';
@@ -29,11 +29,14 @@ export const AcquisitionConsole: React.FC<AcquisitionConsoleProps> = ({
 }) => {
   const [acquisitionType, setAcquisitionType] = useState<'PHYSICAL' | 'LOGICAL' | 'IMAGE'>('PHYSICAL');
   const [isAcquiring, setIsAcquiring] = useState<boolean>(false);
-  const [progress, setProgress] = useState<number>(68.3);
-  const [processedTb, setProcessedTb] = useState<number>(2.73);
+  const [progress, setProgress] = useState<number>(100);
+  const [processedTb, setProcessedTb] = useState<number>(4.0);
   const [readSpeed, setReadSpeed] = useState<number>(184);
-  const [statusMessage, setStatusMessage] = useState<string>('Reading storage blocks... SHA-256 & MD5 on-the-fly digest active');
+  const [statusMessage, setStatusMessage] = useState<string>('Bit-stream raw verification complete. Hashes matched.');
   const [acquisitionComplete, setAcquisitionComplete] = useState<boolean>(true);
+  
+  // Progressive disclosure toggle: Show technical details on demand
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState<boolean>(false);
 
   const adapter = VENDOR_ADAPTERS[selectedVendor];
 
@@ -59,7 +62,7 @@ export const AcquisitionConsole: React.FC<AcquisitionConsoleProps> = ({
         setReadSpeed(180 + Math.floor(Math.random() * 25));
         setStatusMessage(`Reading cylinder ${(curr * 9.7).toFixed(0)}M sectors... Verifying CRC32 chunk checksums`);
       }
-    }, 350);
+    }, 300);
   };
 
   return (
@@ -69,218 +72,199 @@ export const AcquisitionConsole: React.FC<AcquisitionConsoleProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-white font-bold">
             <HardDrive className="w-4 h-4 text-[#38bdf8]" />
-            <span>STANDARDIZED FORENSIC ACQUISITION ENGINE</span>
+            <span>FORENSIC ACQUISITION</span>
           </div>
           <span className="text-[#475569]">|</span>
-          <span className="text-[#38bdf8]">BIT-STREAM REPLICATOR (E01 / DD)</span>
-          <span className="text-[#22c55e]">[WRITE-BLOCKER ACTIVE]</span>
+          <span className="text-[#38bdf8] font-semibold">{deviceInfo.manufacturer} NVR (Disk 0)</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] bg-[#1e293b] text-[#94a3b8] px-2 py-0.5 rounded border border-[#334155]">
-            ISO/IEC 27037 PROTOCOL
-          </span>
-          <span className="text-[10px] bg-[#451a03] text-[#fde047] px-2 py-0.5 rounded border border-[#b45309] font-bold">
-            SIMULATED ACQUISITION
+          <span className="text-[10px] bg-[#0c2818] text-[#4ade80] px-2 py-0.5 rounded border border-[#166534] font-bold flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 text-[#22c55e]" />
+            ACQUISITION COMPLETE
           </span>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        {/* Source Device & Hardware Bridge Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Source Device Card */}
-          <div className="bg-[#121620] border border-[#242c3d] rounded p-3 space-y-1.5">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1e2533] text-white font-bold">
-              <span>SOURCE DEVICE</span>
-              <span className="text-[#38bdf8] text-[10px]">{adapter.name.split('/')[0]}</span>
-            </div>
-            <div className="space-y-1 text-[11px]">
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Manufacturer:</span>
-                <span className="text-white font-bold">{deviceInfo.manufacturer}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Model & Channels:</span>
-                <span className="text-white">{deviceInfo.model.split(' ')[0]} ({deviceInfo.totalChannels} Ch)</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Storage Capacity:</span>
-                <span className="text-white font-bold">{deviceInfo.storageCapacityTb} TB (Disk 0)</span>
-              </div>
-              <div className="flex justify-between py-0.5">
-                <span className="text-[#64748b]">Serial Number:</span>
-                <span className="text-[#38bdf8] truncate max-w-[140px]">{deviceInfo.serialNumber}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Acquisition Method Selector */}
-          <div className="bg-[#121620] border border-[#242c3d] rounded p-3 space-y-2">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1e2533] text-white font-bold">
-              <span>ACQUISITION METHOD</span>
-              <span className="text-[#22c55e] text-[10px]">STANDARDIZED</span>
-            </div>
-            <div className="space-y-1.5 text-[11px]">
-              <label
-                onClick={() => setAcquisitionType('PHYSICAL')}
-                className={`p-2 rounded border cursor-pointer flex items-center justify-between ${
-                  acquisitionType === 'PHYSICAL'
-                    ? 'bg-[#1e293b] border-[#38bdf8] text-white font-bold'
-                    : 'bg-[#0f131c] border-[#1e2533] text-[#8b949e]'
-                }`}
-              >
-                <span>Physical Bit-Stream (E01 Expert Witness)</span>
-                <span className="text-[10px] text-[#22c55e]">RECOMMENDED</span>
-              </label>
-
-              <label
-                onClick={() => setAcquisitionType('LOGICAL')}
-                className={`p-2 rounded border cursor-pointer flex items-center justify-between ${
-                  acquisitionType === 'LOGICAL'
-                    ? 'bg-[#1e293b] border-[#38bdf8] text-white font-bold'
-                    : 'bg-[#0f131c] border-[#1e2533] text-[#8b949e]'
-                }`}
-              >
-                <span>Logical File & Stream Capture</span>
-                <span className="text-[10px] text-[#64748b]">QUICK</span>
-              </label>
-
-              <label
-                onClick={() => setAcquisitionType('IMAGE')}
-                className={`p-2 rounded border cursor-pointer flex items-center justify-between ${
-                  acquisitionType === 'IMAGE'
-                    ? 'bg-[#1e293b] border-[#38bdf8] text-white font-bold'
-                    : 'bg-[#0f131c] border-[#1e2533] text-[#8b949e]'
-                }`}
-              >
-                <span>Raw DD Bit-Stream (.RAW / .IMG)</span>
-                <span className="text-[10px] text-[#64748b]">FLAT</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Write Blocker Bridge Status */}
-          <div className="bg-[#121620] border border-[#242c3d] rounded p-3 space-y-2">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1e2533] text-white font-bold">
-              <span>WRITE-BLOCKER STATUS</span>
-              <span className="text-[#22c55e] text-[10px] bg-[#142e20] px-1 rounded border border-[#166534]">
-                ACTIVE
-              </span>
-            </div>
-            <div className="space-y-1.5 text-[11px]">
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Bridge Hardware:</span>
-                <span className="text-white font-bold">{deviceInfo.writeBlockerModel}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Bus Connection:</span>
-                <span className="text-white">USB 3.0 UASP SuperSpeed</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Hardware Intercept:</span>
-                <span className="text-[#22c55e] font-bold">SCSI WRITE COMMANDS BLOCKED (0x2A)</span>
-              </div>
-              <div className="flex justify-between py-0.5">
-                <span className="text-[#64748b]">Bad Sectors Detected:</span>
-                <span className="text-[#22c55e] font-bold">0 (Clean Media)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Acquisition Progress & Engine Status */}
-        <div className="bg-[#121620] border border-[#242c3d] rounded p-4 space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#1e2533]">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-white text-sm">ACQUISITION STATUS & PROGRESS</span>
-              <span className="text-[10px] text-[#38bdf8] bg-[#0c4a6e]/40 px-1.5 py-0.5 rounded border border-[#0284c7]/40">
-                LBA 0 TO 976,758,551
-              </span>
-            </div>
-
+      <div className="flex-1 p-5 overflow-y-auto max-w-4xl mx-auto w-full space-y-4">
+        {/* PRIMARY VIEW (Requirement 5): Clean, prominent summary */}
+        <div className="bg-[#121620] border border-[#242c3d] rounded-lg p-5 shadow-lg">
+          <div className="flex items-center justify-between pb-4 border-b border-[#1c2331]">
             <div className="flex items-center gap-3">
-              <span className="text-[#64748b]">SPEED: <strong className="text-white">{readSpeed} MB/s</strong></span>
-              <span className="text-[#64748b]">PROCESSED: <strong className="text-[#38bdf8]">{processedTb.toFixed(2)} TB</strong> / 4.00 TB</span>
-              <span className="text-lg font-bold text-white">{progress.toFixed(1)}%</span>
+              <div className="w-10 h-10 rounded-full bg-[#0a2717] border border-[#166534] flex items-center justify-center text-[#22c55e]">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
+                  <span>ACQUISITION COMPLETE</span>
+                  <span className="text-[#22c55e]">✓</span>
+                </h2>
+                <p className="text-[#8b949e] text-[11px]">
+                  Physical bit-stream image verified with zero byte drift
+                </p>
+              </div>
+            </div>
+
+            <span className="bg-[#0c2818] text-[#4ade80] px-3 py-1 rounded text-xs font-bold border border-[#166534]">
+              STATUS: VERIFIED
+            </span>
+          </div>
+
+          {/* Key primary fields */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-b border-[#1c2331]">
+            <div className="bg-[#0b0e14] p-3 rounded border border-[#1a2130]">
+              <span className="text-[10px] text-[#64748b] block mb-1">DEVICE</span>
+              <span className="text-white font-bold text-sm block truncate">
+                {deviceInfo.manufacturer} NVR
+              </span>
+              <span className="text-[10px] text-[#38bdf8]">{deviceInfo.totalChannels} Channels</span>
+            </div>
+
+            <div className="bg-[#0b0e14] p-3 rounded border border-[#1a2130]">
+              <span className="text-[10px] text-[#64748b] block mb-1">STORAGE</span>
+              <span className="text-white font-bold text-sm block">4 TB</span>
+              <span className="text-[10px] text-[#8b949e]">SATA Disk 0</span>
+            </div>
+
+            <div className="bg-[#0b0e14] p-3 rounded border border-[#1a2130]">
+              <span className="text-[10px] text-[#64748b] block mb-1">ACQUISITION</span>
+              <span className="text-white font-bold text-sm block truncate">Bit-stream Image</span>
+              <span className="text-[10px] text-[#f59e0b]">EVID-NVR-001.E01</span>
+            </div>
+
+            <div className="bg-[#0b0e14] p-3 rounded border border-[#1a2130]">
+              <span className="text-[10px] text-[#64748b] block mb-1">INTEGRITY</span>
+              <span className="text-[#22c55e] font-bold text-sm flex items-center gap-1">
+                <span>SHA-256</span>
+                <span>✓</span>
+              </span>
+              <span className="text-[10px] text-[#8b949e]">MD5 Matched</span>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="h-4 bg-[#0a0d14] rounded-full overflow-hidden p-0.5 border border-[#1e2533]">
-            <div
-              className="h-full bg-gradient-to-r from-[#0284c7] to-[#38bdf8] rounded-full transition-all duration-300 relative"
-              style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-white/20 animate-pulse" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-[#8b949e]">
-            <span>Current Operation: <strong className="text-[#cbd5e1]">{statusMessage}</strong></span>
-            <span>Integrity: SHA-256 & MD5 on-the-fly calculation active</span>
-          </div>
-
-          {/* Acquisition Complete Certificate Banner */}
-          {acquisitionComplete && (
-            <div className="mt-4 p-4 bg-[#052e16] border border-[#16a34a] rounded space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[#4ade80] font-bold text-sm">
-                  <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
-                  <span>ACQUISITION COMPLETE & VERIFIED</span>
-                </div>
-                <span className="text-[10px] bg-[#166534] text-white px-2 py-0.5 rounded font-bold">
-                  BIT-STREAM CERTIFIED
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-[11px]">
-                <div className="bg-[#0b2416] p-2 rounded border border-[#15803d]">
-                  <span className="text-[#86efac] text-[9px] block">ACQUISITION SHA-256 HASH:</span>
-                  <span className="text-white font-mono break-all font-bold">
-                    {deviceInfo.acquisitionHashSHA256}
-                  </span>
-                </div>
-                <div className="bg-[#0b2416] p-2 rounded border border-[#15803d]">
-                  <span className="text-[#86efac] text-[9px] block">ACQUISITION MD5 HASH:</span>
-                  <span className="text-white font-mono break-all font-bold">
-                    {deviceInfo.acquisitionHashMD5}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-[#166534] text-[11px]">
-                <div className="text-[#bbf7d0]">
-                  Target Forensic Image: <strong className="text-white font-mono">EVID-NVR-001.E01</strong> | Size: <strong className="text-white">4,000,787,030,016 Bytes</strong>
-                </div>
-                <button
-                  onClick={onNavigateToViewer}
-                  className="bg-[#16a34a] hover:bg-[#15803d] text-white px-3 py-1 rounded font-bold cursor-pointer flex items-center gap-1 shadow"
-                >
-                  <span>EXAMINE EVIDENCE IN WORKSPACE</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Action to re-run simulation */}
-          <div className="flex justify-end pt-2">
+          {/* Action Row */}
+          <div className="pt-4 flex items-center justify-between gap-3">
             <button
-              onClick={handleRunSimulation}
-              disabled={isAcquiring}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-bold cursor-pointer ${
-                isAcquiring
-                  ? 'bg-[#1e293b] text-[#64748b] cursor-not-allowed'
-                  : 'bg-[#0369a1] hover:bg-[#0284c7] text-white'
-              }`}
+              onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1a2333] hover:bg-[#232f45] border border-[#2d3a50] text-[#cbd5e1] font-semibold text-xs cursor-pointer transition"
             >
-              <RotateCw className={`w-3.5 h-3.5 ${isAcquiring ? 'animate-spin' : ''}`} />
-              <span>SIMULATE ACQUISITION RUN</span>
+              <span>{showTechnicalDetails ? 'HIDE TECHNICAL DETAILS' : 'VIEW TECHNICAL DETAILS'}</span>
+              {showTechnicalDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRunSimulation}
+                disabled={isAcquiring}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#161f2e] hover:bg-[#1f2c42] border border-[#28364d] text-[#94a3b8] hover:text-white font-semibold text-xs cursor-pointer transition"
+              >
+                <RotateCw className={`w-3 h-3 ${isAcquiring ? 'animate-spin' : ''}`} />
+                <span>Re-verify Acquisition</span>
+              </button>
+
+              <button
+                onClick={onNavigateToViewer}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-xs cursor-pointer shadow transition"
+              >
+                <span>Examine Evidence</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* PROGRESSIVE DISCLOSURE: Technical Details (Shown when requested) */}
+        {showTechnicalDetails && (
+          <div className="bg-[#0f131c] border border-[#242c3d] rounded-lg p-5 space-y-4 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-[#1c2331]">
+              <span className="font-bold text-white text-xs flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-[#38bdf8]" />
+                TECHNICAL FORENSIC ACQUISITION DETAILS
+              </span>
+              <span className="text-[10px] text-[#64748b]">ISO/IEC 27037 Manifest</span>
+            </div>
+
+            {/* Cryptographic Digests */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
+              <div className="bg-[#121620] p-3 rounded border border-[#1e2637] space-y-1">
+                <span className="text-[#8b949e] text-[10px] block">ACQUISITION SHA-256:</span>
+                <span className="text-[#38bdf8] font-mono break-all font-bold">
+                  {deviceInfo.acquisitionHashSHA256}
+                </span>
+                <div className="text-[10px] text-[#22c55e] pt-1">Status: Hash verified against physical disk</div>
+              </div>
+
+              <div className="bg-[#121620] p-3 rounded border border-[#1e2637] space-y-1">
+                <span className="text-[#8b949e] text-[10px] block">ACQUISITION MD5:</span>
+                <span className="text-[#38bdf8] font-mono break-all font-bold">
+                  {deviceInfo.acquisitionHashMD5}
+                </span>
+                <div className="text-[10px] text-[#22c55e] pt-1">Status: Zero bit divergence</div>
+              </div>
+            </div>
+
+            {/* Hardware write-blocker & SCSI parameters */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+              <div className="bg-[#121620] p-3 rounded border border-[#1e2637] space-y-1.5">
+                <div className="flex items-center justify-between text-[#8b949e]">
+                  <span>Write-Blocker Bridge:</span>
+                  <span className="text-white font-bold">{deviceInfo.writeBlockerModel}</span>
+                </div>
+                <div className="flex items-center justify-between text-[#8b949e]">
+                  <span>SCSI Command Filter:</span>
+                  <span className="text-[#22c55e] font-bold">Write Block Active (0x2A)</span>
+                </div>
+                <div className="flex items-center justify-between text-[#8b949e]">
+                  <span>Bus Protocol:</span>
+                  <span className="text-white">USB 3.0 UASP SuperSpeed</span>
+                </div>
+              </div>
+
+              <div className="bg-[#121620] p-3 rounded border border-[#1e2637] space-y-1.5">
+                <div className="flex items-center justify-between text-[#8b949e]">
+                  <span>LBA Sector Range:</span>
+                  <span className="text-white font-mono">0 to 976,758,551</span>
+                </div>
+                <div className="flex items-center justify-between text-[#8b949e]">
+                  <span>Physical Sector Size:</span>
+                  <span className="text-white font-mono">4096 Bytes</span>
+                </div>
+                <div className="flex items-center justify-between text-[#8b949e]">
+                  <span>Forensic Image Size:</span>
+                  <span className="text-white font-mono">4,000,787,030,016 B</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Acquisition Methods Selector (Preserved) */}
+            <div className="pt-2 border-t border-[#1c2331]">
+              <span className="text-[10px] text-[#64748b] block mb-2 font-semibold uppercase">
+                Acquisition Image Format:
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'PHYSICAL', label: 'Physical Bit-Stream (E01)', note: 'Recommended / Verified' },
+                  { id: 'LOGICAL', label: 'Logical File & Stream', note: 'Fast volume scan' },
+                  { id: 'IMAGE', label: 'Raw DD (.RAW / .IMG)', note: 'Bit-by-bit flat' }
+                ].map((m) => (
+                  <div
+                    key={m.id}
+                    onClick={() => setAcquisitionType(m.id as any)}
+                    className={`p-2 rounded border cursor-pointer text-left transition ${
+                      acquisitionType === m.id
+                        ? 'bg-[#1b263b] border-[#38bdf8] text-white font-bold'
+                        : 'bg-[#121620] border-[#1e2637] text-[#8b949e]'
+                    }`}
+                  >
+                    <div className="text-[11px]">{m.label}</div>
+                    <div className="text-[9px] text-[#64748b]">{m.note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

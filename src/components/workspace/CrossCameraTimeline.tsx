@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import {
   Clock,
-  Camera,
   Car,
   User,
-  AlertTriangle,
   Flame,
-  CheckCircle2,
-  Sparkles,
   GitBranch,
+  ChevronDown,
+  ChevronUp,
   Play,
   ArrowRight,
-  Filter,
-  Eye,
-  Sliders
+  ShieldCheck,
+  Info
 } from 'lucide-react';
 import {
   CameraChannel,
@@ -40,118 +37,106 @@ export const CrossCameraTimeline: React.FC<CrossCameraTimelineProps> = ({
   aiFindings
 }) => {
   const [selectedEventId, setSelectedEventId] = useState<string>('EVT-03');
-  const [timelineScrubTime, setTimelineScrubTime] = useState<number>(14.5); // Minutes past 21:00 (i.e. 21:14:30)
-  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('ALL');
+  const [showTimestampDetails, setShowTimestampDetails] = useState<boolean>(false);
 
   const selectedEvent =
     timelineEvents.find((e) => e.id === selectedEventId) || timelineEvents[0];
 
-  // Helper to convert event time to position percentage in 30-min window (21:00:00 to 21:30:00)
+  // Helper to calculate marker percentage in 30-min window (21:00:00 to 21:30:00)
   const getEventPositionPct = (timeStr: string) => {
-    // Parse time
     const parts = timeStr.split(' ')[1]?.split(':') || ['21', '00', '00'];
     const min = parseInt(parts[1], 10);
     const sec = parseInt(parts[2], 10);
     const totalMinutes = min + sec / 60;
-    // Map 0 to 30 mins -> 0% to 100%
     return Math.max(0, Math.min(100, (totalMinutes / 30) * 100));
   };
 
-  const filteredEvents = timelineEvents.filter((e) => {
-    if (activeCategoryFilter === 'ALL') return true;
-    return e.category === activeCategoryFilter;
-  });
-
   return (
     <div className="flex-1 flex flex-col bg-[#0b0e14] h-full overflow-hidden select-none font-mono text-xs">
-      {/* Header */}
+      {/* Top Header */}
       <div className="h-10 px-4 bg-[#141822] border-b border-[#242c3d] flex items-center justify-between text-xs shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-white font-bold">
             <Clock className="w-4 h-4 text-[#38bdf8]" />
-            <span>CROSS-CAMERA SYNCHRONIZED TIMELINE & EVENT CORRELATION</span>
+            <span>UNIFIED TIMELINE</span>
           </div>
           <span className="text-[#475569]">|</span>
-          <span className="text-[#38bdf8]">INCIDENT WINDOW: 21:00:00 — 21:30:00</span>
-          <span className="text-[#f59e0b]">[NORMALIZED TO MASTER NTP]</span>
+          <span className="text-[#f59e0b] font-semibold">Incident Window: 21:00 – 21:30</span>
         </div>
 
         <div className="flex items-center gap-2">
-          {['ALL', 'VEHICLE', 'PERSON', 'RECOVERED', 'ALARM'].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategoryFilter(cat)}
-              className={`px-2 py-0.5 rounded text-[10px] border cursor-pointer ${
-                activeCategoryFilter === cat
-                  ? 'bg-[#0284c7] border-[#38bdf8] text-white font-bold'
-                  : 'bg-[#182030] border-[#2b3547] text-[#8b949e] hover:text-white'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {/* Progressive disclosure toggle: Timestamp Details */}
+          <button
+            onClick={() => setShowTimestampDetails(!showTimestampDetails)}
+            className="flex items-center gap-1 px-3 py-1 rounded bg-[#182030] hover:bg-[#202b40] border border-[#2b3547] text-[#cbd5e1] text-[11px] font-semibold cursor-pointer transition"
+          >
+            <span>{showTimestampDetails ? 'Hide Timestamp Details' : 'TIMESTAMP DETAILS'}</span>
+            {showTimestampDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+
+          <button
+            onClick={() => onOpenTrace()}
+            className="bg-[#0369a1] hover:bg-[#0284c7] text-white px-3 py-1 rounded text-[11px] font-bold cursor-pointer flex items-center gap-1 shadow"
+          >
+            <GitBranch className="w-3 h-3" />
+            <span>Trace Timeline Provenance</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Split: Multi-Track Timeline & Event Correlation Chain */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top: Multi-Camera Horizontal Track Lanes */}
-        <div className="h-3/5 border-b border-[#1f2635] p-3 flex flex-col overflow-y-auto bg-[#0d1017]">
-          {/* Timeline Scale Ruler */}
-          <div className="flex items-center mb-2 pl-36 pr-4">
-            <div className="flex-1 flex justify-between text-[10px] text-[#64748b] border-b border-[#242c3d] pb-1 font-semibold">
-              <span>21:00:00</span>
-              <span>21:05:00</span>
-              <span>21:10:00</span>
-              <span className="text-[#f59e0b]">21:14:00 (INCIDENT FOCUS)</span>
-              <span>21:20:00</span>
-              <span>21:25:00</span>
-              <span>21:30:00</span>
-            </div>
+      {/* Main Content Area */}
+      <div className="flex-1 p-4 overflow-y-auto max-w-5xl mx-auto w-full space-y-4">
+        {/* Requirement 7: Visual Camera Timeline Tracks */}
+        <div className="bg-[#121620] border border-[#242c3d] rounded-lg p-4 space-y-2">
+          {/* Timeline Scale Marks */}
+          <div className="flex items-center justify-between pl-24 pr-4 pb-1.5 border-b border-[#1c2331] text-[10px] text-[#64748b]">
+            <span>21:00</span>
+            <span>21:05</span>
+            <span>21:10</span>
+            <span className="text-[#f59e0b] font-bold">21:14 (INCIDENT)</span>
+            <span>21:20</span>
+            <span>21:25</span>
+            <span>21:30</span>
           </div>
 
-          {/* Camera Track Rows */}
-          <div className="flex-1 space-y-2 relative">
-            {cameras.map((cam) => {
-              const camEvents = filteredEvents.filter((e) => e.cameraId === cam.id);
-              const isFocusCam = cam.id === 'CH-04';
+          {/* Camera Track Lines */}
+          <div className="space-y-1.5 pt-1">
+            {cameras.slice(0, 7).map((cam) => {
+              const camEvents = timelineEvents.filter((e) => e.cameraId === cam.id);
+              const isIncidentFocus = cam.id === 'CH-04';
 
               return (
                 <div
                   key={cam.id}
-                  className={`flex items-center group h-10 rounded border ${
-                    isFocusCam
-                      ? 'bg-[#151c27] border-[#0284c7]/60'
-                      : 'bg-[#11151e] border-[#1d2535]'
+                  className={`flex items-center h-8 px-2 rounded border transition ${
+                    isIncidentFocus
+                      ? 'bg-[#151c27] border-[#0284c7]/50'
+                      : 'bg-[#0b0e14] border-[#18202d]'
                   }`}
                 >
-                  {/* Camera Name Label */}
-                  <div className="w-36 px-2 flex items-center gap-1.5 border-r border-[#1f2838] shrink-0 text-[10px]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
-                    <span className="font-bold text-[#38bdf8]">{cam.id}</span>
-                    <span className="text-[#94a3b8] truncate">{cam.name.split(' ')[0]}</span>
+                  {/* Camera ID and name label */}
+                  <div className="w-24 shrink-0 flex items-center gap-1.5 text-[10px]">
+                    <span className="font-bold text-white">{cam.id}</span>
+                    <span className="text-[#8b949e] truncate">{cam.name.split(' ')[0]}</span>
                   </div>
 
-                  {/* Track Bar Lane */}
+                  {/* Horizontal Track Ribbon with event pins */}
                   <div className="flex-1 relative h-full flex items-center px-4 overflow-hidden">
-                    {/* Continuous recording ribbon */}
-                    <div className="absolute left-0 right-0 h-2 bg-[#1e293b] rounded" />
+                    {/* Track Line */}
+                    <div className="absolute left-0 right-0 h-1 bg-[#1e2738] rounded-full" />
 
-                    {/* Highlighted incident period (21:13 to 21:17) */}
+                    {/* Incident zone highlight */}
                     <div
-                      className="absolute h-3 bg-[#0369a1]/25 border-l border-r border-[#0284c7]/40"
-                      style={{
-                        left: `${(13 / 30) * 100}%`,
-                        width: `${(4 / 30) * 100}%`
-                      }}
+                      className="absolute h-2.5 bg-[#0369a1]/25 border-l border-r border-[#0284c7]/50"
+                      style={{ left: `${(13 / 30) * 100}%`, width: `${(4 / 30) * 100}%` }}
                     />
 
-                    {/* Event pins */}
+                    {/* Event pin markers */}
                     {camEvents.map((evt) => {
                       const pos = getEventPositionPct(evt.timestamp);
                       const isSelected = selectedEventId === evt.id;
+                      const isCar = evt.category === 'VEHICLE';
                       const isRecovered = evt.category === 'RECOVERED';
-                      const isVehicle = evt.category === 'VEHICLE';
 
                       return (
                         <div
@@ -161,33 +146,93 @@ export const CrossCameraTimeline: React.FC<CrossCameraTimelineProps> = ({
                             onSelectEvent(evt);
                           }}
                           title={`[${evt.timestamp}] ${evt.title}`}
-                          className={`absolute -ml-3 z-10 cursor-pointer flex items-center justify-center transition-transform hover:scale-125 ${
+                          className={`absolute -ml-2.5 z-10 cursor-pointer flex items-center justify-center transition-transform hover:scale-125 ${
                             isSelected ? 'scale-125 z-20' : ''
                           }`}
                           style={{ left: `${pos}%` }}
                         >
                           <div
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shadow-lg ${
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center shadow ${
                               isSelected
                                 ? 'bg-white text-black border-[#38bdf8] ring-2 ring-[#38bdf8]'
                                 : isRecovered
                                 ? 'bg-[#f59e0b] text-black border-amber-300'
-                                : isVehicle
+                                : isCar
                                 ? 'bg-[#0284c7] text-white border-sky-300'
                                 : 'bg-[#ef4444] text-white border-red-300'
                             }`}
                           >
-                            {isVehicle ? (
-                              <Car className="w-3 h-3" />
-                            ) : isRecovered ? (
-                              <Flame className="w-3 h-3" />
-                            ) : (
-                              <User className="w-3 h-3" />
-                            )}
+                            {isCar ? <Car className="w-2.5 h-2.5" /> : isRecovered ? <Flame className="w-2.5 h-2.5" /> : <User className="w-2.5 h-2.5" />}
                           </div>
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Badge for Focus Camera */}
+                  {isIncidentFocus && (
+                    <span className="text-[9px] bg-[#dc2626]/30 text-[#fca5a5] px-1.5 py-0.2 rounded border border-[#ef4444]/40 font-bold shrink-0">
+                      INCIDENT
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Requirement 7: CORRELATED EVENTS List */}
+        <div className="bg-[#121620] border border-[#242c3d] rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1c2331]">
+            <span className="font-bold text-white text-xs">CORRELATED EVENTS SEQUENCE</span>
+            <span className="text-[10px] text-[#22c55e]">Chronological Reconstruction</span>
+          </div>
+
+          <div className="space-y-2">
+            {timelineEvents.slice(0, 6).map((evt, idx) => {
+              const isSelected = selectedEventId === evt.id;
+              return (
+                <div
+                  key={evt.id}
+                  onClick={() => {
+                    setSelectedEventId(evt.id);
+                    onSelectEvent(evt);
+                  }}
+                  className={`p-3 rounded-lg border cursor-pointer transition flex items-center justify-between ${
+                    isSelected
+                      ? 'bg-[#1b263b] border-[#38bdf8]'
+                      : 'bg-[#0b0e14] border-[#1a2130] hover:bg-[#151c27]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-5 h-5 rounded-full bg-[#162030] text-[#38bdf8] font-bold text-[10px] flex items-center justify-center shrink-0 border border-[#24334a]">
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <div className="font-bold text-white text-xs flex items-center gap-2">
+                        <span>{evt.title}</span>
+                        <span className="text-[10px] text-[#38bdf8] bg-[#0c4a6e]/30 px-1 rounded">
+                          {evt.cameraId}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[#8b949e] line-clamp-1">{evt.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-[#f59e0b] font-mono text-[11px] font-bold">
+                      {evt.timestamp.split(' ')[1]}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectEvent(evt);
+                      }}
+                      className="bg-[#0284c7] hover:bg-[#0369a1] text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer flex items-center gap-1"
+                    >
+                      <Play className="w-2.5 h-2.5" />
+                      <span>Jump</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -195,73 +240,41 @@ export const CrossCameraTimeline: React.FC<CrossCameraTimelineProps> = ({
           </div>
         </div>
 
-        {/* Bottom: Event Correlation Flow & Reconstruction Sequence */}
-        <div className="h-2/5 p-3 bg-[#0a0d13] flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1a2130]">
-            <div className="flex items-center gap-2">
-              <GitBranch className="w-3.5 h-3.5 text-[#38bdf8]" />
-              <span className="font-bold text-white text-xs">
-                CROSS-CAMERA MULTI-STAGE EVENT CORRELATION CHAIN
+        {/* PROGRESSIVE DISCLOSURE: Detailed Timestamp Normalization Data */}
+        {showTimestampDetails && (
+          <div className="bg-[#0f131c] border border-[#242c3d] rounded-lg p-4 space-y-3 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-[#1c2331]">
+              <span className="font-bold text-white text-xs flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-[#f59e0b]" />
+                DETAILED TIMESTAMP NORMALIZATION ANALYSIS
               </span>
+              <span className="text-[10px] text-[#22c55e]">Master Clock Aligned</span>
             </div>
-            <div className="flex items-center gap-3 text-[10px] text-[#8b949e]">
-              <span>7 Verified Forensic Events Linked</span>
-              <button
-                onClick={() => onOpenTrace()}
-                className="bg-[#0369a1] hover:bg-[#0284c7] text-white px-2.5 py-1 rounded font-bold cursor-pointer flex items-center gap-1"
-              >
-                <GitBranch className="w-3 h-3" />
-                <span>TRACE CHAIN PROVENANCE</span>
-              </button>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+              <div className="bg-[#121620] p-2.5 rounded border border-[#1e2637]">
+                <span className="text-[#64748b] text-[10px] block">RAW DEVICE TIME:</span>
+                <span className="text-[#fca5a5] font-bold">2026-09-28 21:14:32</span>
+              </div>
+              <div className="bg-[#121620] p-2.5 rounded border border-[#1e2637]">
+                <span className="text-[#64748b] text-[10px] block">DETECTED OFFSET:</span>
+                <span className="text-[#f59e0b] font-bold">+00:03:17 (Fast)</span>
+              </div>
+              <div className="bg-[#121620] p-2.5 rounded border border-[#1e2637]">
+                <span className="text-[#64748b] text-[10px] block">NORMALIZED TIME:</span>
+                <span className="text-[#38bdf8] font-bold">2026-09-28 21:11:15</span>
+              </div>
+              <div className="bg-[#121620] p-2.5 rounded border border-[#1e2637]">
+                <span className="text-[#64748b] text-[10px] block">STANDARDIZATION:</span>
+                <span className="text-white">UTC+05:30 (IST)</span>
+              </div>
             </div>
+
+            <p className="text-[10px] text-[#8b949e]">
+              <strong>Forensic Principle:</strong> Time normalization creates an analytical representation for cross-camera correlation without modifying the original bit-stream timestamps stored on the E01 forensic image.
+            </p>
           </div>
-
-          {/* Chronological Flow Cards Sequence */}
-          <div className="flex-1 flex items-center gap-2 overflow-x-auto pb-1">
-            {timelineEvents.map((evt, idx) => {
-              const isSelected = selectedEventId === evt.id;
-              return (
-                <React.Fragment key={evt.id}>
-                  <div
-                    onClick={() => {
-                      setSelectedEventId(evt.id);
-                      onSelectEvent(evt);
-                    }}
-                    className={`min-w-[200px] max-w-[230px] p-2.5 rounded border cursor-pointer transition flex flex-col justify-between shrink-0 h-full ${
-                      isSelected
-                        ? 'bg-[#1a263b] border-[#38bdf8] ring-1 ring-[#38bdf8]'
-                        : 'bg-[#121620] border-[#222a3a] hover:bg-[#161d2a]'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] mb-1">
-                        <span className="text-[#38bdf8] font-bold">#{evt.sequenceOrder} {evt.cameraId}</span>
-                        <span className="text-[#f59e0b] font-mono">{evt.timestamp.split(' ')[1]}</span>
-                      </div>
-                      <div className="font-bold text-white text-[11px] truncate mb-1">
-                        {evt.title}
-                      </div>
-                      <p className="text-[10px] text-[#94a3b8] line-clamp-2">
-                        {evt.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-[#1a2230] mt-1 flex items-center justify-between text-[9px]">
-                      <span className="text-[#22c55e]">Confidence: {evt.confidence || 90}%</span>
-                      <span className="text-[#38bdf8] font-bold flex items-center gap-0.5">
-                        <Play className="w-2.5 h-2.5" /> JUMP
-                      </span>
-                    </div>
-                  </div>
-
-                  {idx < timelineEvents.length - 1 && (
-                    <ArrowRight className="w-4 h-4 text-[#475569] shrink-0" />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

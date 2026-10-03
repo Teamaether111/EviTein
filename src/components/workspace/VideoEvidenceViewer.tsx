@@ -36,6 +36,8 @@ interface VideoEvidenceViewerProps {
   onOpenTrace: (finding?: AIFinding) => void;
   onAddBookmark: (recording: VideoRecording, frameNum: number, timeStr: string) => void;
   onAddNote: (recording: VideoRecording, timeStr: string) => void;
+  onSwitchToAIFindings?: () => void;
+  onSwitchToCompare?: () => void;
 }
 
 export const VideoEvidenceViewer: React.FC<VideoEvidenceViewerProps> = ({
@@ -45,7 +47,9 @@ export const VideoEvidenceViewer: React.FC<VideoEvidenceViewerProps> = ({
   timelineEvents,
   onOpenTrace,
   onAddBookmark,
-  onAddNote
+  onAddNote,
+  onSwitchToAIFindings,
+  onSwitchToCompare
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
@@ -346,6 +350,23 @@ export const VideoEvidenceViewer: React.FC<VideoEvidenceViewerProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onSwitchToAIFindings && (
+            <button
+              onClick={onSwitchToAIFindings}
+              className="px-2 py-0.5 rounded text-[11px] bg-[#161c28] hover:bg-[#20293a] border border-[#2b3547] text-[#c084fc] cursor-pointer"
+            >
+              AI Findings Table →
+            </button>
+          )}
+          {onSwitchToCompare && (
+            <button
+              onClick={onSwitchToCompare}
+              className="px-2 py-0.5 rounded text-[11px] bg-[#161c28] hover:bg-[#20293a] border border-[#2b3547] text-[#8b949e] hover:text-white cursor-pointer"
+            >
+              Dual Compare
+            </button>
+          )}
+          <div className="h-4 w-[1px] bg-[#2d3748] mx-0.5" />
           {/* Overlay toggles */}
           <button
             onClick={() => setShowOverlays(!showOverlays)}

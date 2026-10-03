@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import {
   Sparkles,
-  Camera,
   Eye,
   GitBranch,
   Bookmark,
   FileText,
-  ShieldCheck,
   CheckCircle2,
-  Clock,
-  Layers,
   Filter,
   Search,
-  AlertTriangle
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
-import { AIFinding, VideoRecording } from '../../types/forensics';
+import { AIFinding } from '../../types/forensics';
 
 interface AIAnalysisModuleProps {
   aiFindings: AIFinding[];
@@ -62,28 +59,23 @@ export const AIAnalysisModule: React.FC<AIAnalysisModuleProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-white font-bold">
             <Sparkles className="w-4 h-4 text-[#c084fc]" />
-            <span>AI-ASSISTED EVIDENCE DETECTION MODULE</span>
+            <span>AI FORENSIC TRIAGE & FINDINGS</span>
           </div>
           <span className="text-[#475569]">|</span>
-          <span className="text-[#38bdf8]">TENSORRT / YOLO-FORENSICS PIPELINE</span>
-          <span className="text-[#22c55e]">[ALL RESULTS STRICTLY GROUNDED IN RAW BYTES]</span>
+          <span className="text-[#38bdf8]">EVIDENCE-GROUNDED ARTIFACTS</span>
         </div>
 
-        {/* Prototype notice */}
         <div className="flex items-center gap-2">
           <span className="text-[10px] bg-[#3b0764] text-[#e9d5ff] px-2 py-0.5 rounded border border-[#7e22ce] font-bold">
-            ZERO HALLUCINATION POLICY
-          </span>
-          <span className="text-[10px] bg-[#1e293b] text-[#94a3b8] px-2 py-0.5 rounded border border-[#334155]">
-            SIH26150 PROTOTYPE
+            ZERO HALLUCINATIONS
           </span>
         </div>
       </div>
 
       {/* Filter and search bar */}
       <div className="p-3 bg-[#0d1017] border-b border-[#1f2635] flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          {['ALL', 'Vehicle', 'Person', 'License Plate', 'Motion Anomaly', 'Loitering'].map((type) => (
+        <div className="flex items-center gap-1.5">
+          {['ALL', 'Vehicle', 'Person', 'License Plate', 'Motion'].map((type) => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
@@ -98,92 +90,74 @@ export const AIAnalysisModule: React.FC<AIAnalysisModuleProps> = ({
           ))}
         </div>
 
-        <div className="w-64">
+        <div className="w-56">
           <input
             type="text"
-            placeholder="Search AI findings, frames, cameras..."
+            placeholder="Filter findings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#161c27] text-white text-xs px-3 py-1 rounded border border-[#2b3547] focus:outline-none focus:border-[#38bdf8] placeholder-[#556173]"
+            className="w-full bg-[#161c27] text-white text-[11px] px-2.5 py-1 rounded border border-[#2b3547] focus:outline-none focus:border-[#38bdf8] placeholder-[#556173]"
           />
         </div>
       </div>
 
-      {/* Main split: Findings List (Left) & Inspector / Frame Reference (Right) */}
+      {/* Main split: Simplified Primary Table (Left) & Rich Finding Detail Panel (Right) */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Findings Table */}
-        <div className="flex-1 flex flex-col p-3 overflow-hidden border-r border-[#1f2635]">
+        {/* Left: Simplified Clean Findings Table (Requirement 8) */}
+        <div className="flex-1 flex flex-col p-4 overflow-hidden border-r border-[#1f2635]">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-white flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-[#38bdf8]" />
-              DETECTED EVIDENCE ARTIFACTS ({filteredFindings.length})
+            <span className="font-bold text-white text-xs">
+              AI DETECTIONS ({filteredFindings.length})
             </span>
             <span className="text-[10px] text-[#8b949e]">
-              Click any finding to inspect provenance chain or jump to video frame
+              Click a row to view complete provenance & frame details
             </span>
           </div>
 
-          <div className="flex-1 bg-[#0e1219] rounded border border-[#222a3a] overflow-hidden flex flex-col">
+          <div className="flex-1 bg-[#121620] border border-[#242c3d] rounded-lg overflow-hidden flex flex-col">
             {filteredFindings.length === 0 ? (
-              <div className="p-8 text-center text-[#8b949e]">
+              <div className="p-8 text-center text-[#8b949e] my-auto">
                 <AlertTriangle className="w-6 h-6 text-[#f59e0b] mx-auto mb-2" />
                 <div className="font-bold text-white mb-1">No supporting evidence found.</div>
-                <div className="text-[11px]">
-                  EviTwin forensic policy prohibits fabricating unsubstantiated AI results.
-                </div>
+                <div className="text-[11px]">Strict evidentiary grounding active.</div>
               </div>
             ) : (
               <div className="overflow-y-auto flex-1">
+                {/* Clean 4-column primary table per Requirement 8: Finding | Camera | Time | Confidence */}
                 <table className="w-full text-left text-[11px]">
-                  <thead className="bg-[#161c27] text-[#64748b] sticky top-0 border-b border-[#1f2635]">
+                  <thead className="bg-[#10141d] text-[#64748b] sticky top-0 border-b border-[#1f2635]">
                     <tr>
-                      <th className="p-2">FINDING ID</th>
-                      <th className="p-2">CLASSIFICATION</th>
-                      <th className="p-2">CAMERA</th>
-                      <th className="p-2">TIMESTAMP (NORM)</th>
-                      <th className="p-2">FRAME #</th>
-                      <th className="p-2">CONFIDENCE</th>
-                      <th className="p-2">RECORDING REF</th>
-                      <th className="p-2">REPORT STATUS</th>
+                      <th className="p-2.5">FINDING</th>
+                      <th className="p-2.5">CAMERA</th>
+                      <th className="p-2.5">TIME</th>
+                      <th className="p-2.5">CONFIDENCE</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#18202d]">
+                  <tbody className="divide-y divide-[#18202d] text-[#cbd5e1]">
                     {filteredFindings.map((finding) => {
                       const isSelected = selectedFindingId === finding.id;
-                      const isCarved = Boolean(finding.sourceFragmentId);
 
                       return (
                         <tr
                           key={finding.id}
                           onClick={() => setSelectedFindingId(finding.id)}
                           className={`hover:bg-[#182232] cursor-pointer transition ${
-                            isSelected ? 'bg-[#1b263b] text-white font-bold' : 'text-[#cbd5e1]'
+                            isSelected ? 'bg-[#1b263b] text-white font-bold' : ''
                           }`}
                         >
-                          <td className="p-2 font-mono text-[#38bdf8] flex items-center gap-1">
-                            <Sparkles className="w-3 h-3 text-[#c084fc]" />
-                            <span>{finding.id}</span>
+                          <td className="p-2.5 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#c084fc]" />
+                            <span className="text-[#fde047]">{finding.type}</span>
                           </td>
-                          <td className="p-2">
-                            <span className="bg-[#24133b] text-[#e9d5ff] px-1.5 py-0.5 rounded border border-[#6b21a8]">
-                              {finding.type}
-                            </span>
+                          <td className="p-2.5">
+                            <span className="font-bold text-white">{finding.cameraId}</span>
+                            <span className="text-[#8b949e] text-[10px] ml-1">({finding.cameraName.split(' ')[0]})</span>
                           </td>
-                          <td className="p-2">
-                            <span className="font-bold">{finding.cameraId}</span> ({finding.cameraName.split(' ')[0]})
+                          <td className="p-2.5 text-[#38bdf8] font-mono">
+                            {finding.normalizedTimestamp.split(' ')[1]}
                           </td>
-                          <td className="p-2 text-[#f59e0b]">{finding.normalizedTimestamp.split(' ')[1]}</td>
-                          <td className="p-2 font-mono">#{finding.frameNumber}</td>
-                          <td className="p-2 font-bold text-[#4ade80]">{finding.confidence}%</td>
-                          <td className="p-2 text-[#38bdf8]">{finding.recordingId}</td>
-                          <td className="p-2">
-                            {finding.addedToReport ? (
-                              <span className="text-[#22c55e] flex items-center gap-1 font-bold">
-                                <CheckCircle2 className="w-3 h-3" /> Included
-                              </span>
-                            ) : (
-                              <span className="text-[#64748b]">Unfiled</span>
-                            )}
+                          <td className="p-2.5 font-bold text-[#4ade80]">
+                            {finding.confidence}%
                           </td>
                         </tr>
                       );
@@ -195,107 +169,114 @@ export const AIAnalysisModule: React.FC<AIAnalysisModuleProps> = ({
           </div>
         </div>
 
-        {/* Right: Technical Inspector for Selected AI Finding */}
-        <div className="w-96 flex flex-col p-3 bg-[#0d1017] overflow-y-auto space-y-3">
-          <div className="bg-[#121620] border border-[#242c3d] rounded p-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1e2533] mb-2">
-              <span className="font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#c084fc]" />
-                FINDING: {selectedFinding.id}
-              </span>
-              <span className="text-[10px] text-[#22c55e] bg-[#064e3b] px-1.5 py-0.5 rounded border border-[#059669] font-bold">
-                {selectedFinding.confidence}% CONFIDENCE
-              </span>
-            </div>
-
-            <div className="space-y-1.5 text-[11px]">
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Object Type:</span>
-                <span className="text-[#fde047] font-bold">{selectedFinding.type}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Camera:</span>
-                <span className="text-white">{selectedFinding.cameraId} — {selectedFinding.cameraName}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Raw Timestamp:</span>
-                <span className="text-[#fca5a5] font-bold">{selectedFinding.timestamp}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Normalized Timestamp:</span>
-                <span className="text-[#38bdf8] font-bold">{selectedFinding.normalizedTimestamp}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Frame Reference:</span>
-                <span className="text-white font-bold">Frame #{selectedFinding.frameNumber}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Recording Container:</span>
-                <span className="text-[#38bdf8]">{selectedFinding.recordingId}</span>
-              </div>
-              <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                <span className="text-[#64748b]">Underlying Model:</span>
-                <span className="text-white truncate max-w-[170px]">{selectedFinding.model}</span>
-              </div>
-              {selectedFinding.sourceFragmentId && (
-                <div className="flex justify-between py-0.5 border-b border-[#1a2130]">
-                  <span className="text-[#f59e0b]">Carved Source Fragment:</span>
-                  <span className="text-[#f59e0b] font-bold">{selectedFinding.sourceFragmentId}</span>
+        {/* Right: Rich Finding Detail Panel (Requirement 8) */}
+        <div className="w-96 p-4 bg-[#0d1017] flex flex-col justify-between overflow-y-auto space-y-3">
+          <div className="space-y-3">
+            {/* Header */}
+            <div className="bg-[#121620] border border-[#242c3d] rounded-lg p-3.5 space-y-2">
+              <div className="flex items-center justify-between pb-2 border-b border-[#1c2331]">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#c084fc]" />
+                  <span className="font-bold text-white text-xs">{selectedFinding.type}</span>
                 </div>
-              )}
-            </div>
+                <span className="bg-[#0c2818] text-[#4ade80] text-[10px] font-bold px-2 py-0.5 rounded border border-[#166534]">
+                  {selectedFinding.confidence}% Conf
+                </span>
+              </div>
 
-            <div className="mt-3 p-2 bg-[#090b10] rounded text-[10px] text-[#cbd5e1] border border-[#1a2130]">
-              <strong className="text-[#a78bfa]">Forensic Observations:</strong> {selectedFinding.details}
-            </div>
+              {/* Requirement 8 details */}
+              <div className="space-y-1.5 text-[11px]">
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">Finding ID:</span>
+                  <span className="text-white font-mono">{selectedFinding.id}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">Camera Sensor:</span>
+                  <span className="text-white">{selectedFinding.cameraId} — {selectedFinding.cameraName}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">Timestamp (Norm):</span>
+                  <span className="text-[#38bdf8] font-mono font-bold">{selectedFinding.normalizedTimestamp}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">Raw Timestamp:</span>
+                  <span className="text-[#fca5a5] font-mono">{selectedFinding.timestamp}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">Source Recording:</span>
+                  <span className="text-white font-mono font-semibold">{selectedFinding.recordingId}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">Frame Reference:</span>
+                  <span className="text-white font-bold">Frame #{selectedFinding.frameNumber}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                  <span className="text-[#64748b]">AI Model:</span>
+                  <span className="text-[#cbd5e1] truncate max-w-[170px]">{selectedFinding.model}</span>
+                </div>
+                {selectedFinding.sourceFragmentId && (
+                  <div className="flex justify-between py-0.5 border-b border-[#18202d]">
+                    <span className="text-[#f59e0b]">Carved Provenance:</span>
+                    <span className="text-[#f59e0b] font-bold">{selectedFinding.sourceFragmentId}</span>
+                  </div>
+                )}
+                <div className="flex justify-between py-0.5">
+                  <span className="text-[#64748b]">Report Exhibit:</span>
+                  <span className={selectedFinding.addedToReport ? 'text-[#22c55e] font-bold' : 'text-[#8b949e]'}>
+                    {selectedFinding.addedToReport ? 'Included in Report' : 'Not Added'}
+                  </span>
+                </div>
+              </div>
 
-            {/* Bounding box coords */}
-            <div className="mt-2 text-[10px] text-[#64748b]">
-              Bounding Box: [X: {selectedFinding.boundingBox.x}%, Y: {selectedFinding.boundingBox.y}%, W: {selectedFinding.boundingBox.width}%, H: {selectedFinding.boundingBox.height}%]
+              {/* Observation note */}
+              <div className="mt-2 p-2 bg-[#090b10] rounded border border-[#1a2130] text-[10px] text-[#cbd5e1]">
+                <strong className="text-[#c084fc]">Analysis:</strong> {selectedFinding.details}
+              </div>
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="bg-[#121620] border border-[#242c3d] rounded p-3 space-y-2">
+          {/* Action Buttons */}
+          <div className="space-y-2 pt-2">
+            {/* Requirement 8: [TRACE TO SOURCE] */}
+            <button
+              onClick={() => onOpenTrace(selectedFinding)}
+              className="w-full bg-[#0369a1] hover:bg-[#0284c7] text-white py-2 px-3 rounded font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow transition"
+            >
+              <GitBranch className="w-4 h-4" />
+              <span>TRACE TO SOURCE</span>
+            </button>
+
             <button
               onClick={() =>
                 onOpenRecordingAtFrame(selectedFinding.recordingId, selectedFinding.frameNumber)
               }
-              className="w-full bg-[#0369a1] hover:bg-[#0284c7] text-white py-2 px-3 rounded font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow"
+              className="w-full bg-[#182232] hover:bg-[#202d42] border border-[#2b394e] text-white py-1.5 px-3 rounded font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span>VIEW IN FORENSIC VIDEO VIEWER</span>
+              <Eye className="w-3.5 h-3.5 text-[#38bdf8]" />
+              <span>View in Video Viewer</span>
             </button>
 
-            <button
-              onClick={() => onOpenTrace(selectedFinding)}
-              className="w-full bg-gradient-to-r from-[#0369a1] to-[#0284c7] hover:from-[#0284c7] hover:to-[#38bdf8] text-white py-2 px-3 rounded font-bold flex items-center justify-center gap-2 cursor-pointer shadow"
-            >
-              <GitBranch className="w-4 h-4" />
-              <span>TRACE TO SOURCE PROVENANCE</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onAddFindingToReport(selectedFinding.id)}
+                className="flex-1 bg-[#141b27] hover:bg-[#1c2738] border border-[#243144] text-[#cbd5e1] py-1.5 rounded text-[10px] font-semibold cursor-pointer"
+              >
+                {selectedFinding.addedToReport ? 'Added to Report ✓' : 'Add to Report'}
+              </button>
 
-            <button
-              onClick={() => onAddFindingToReport(selectedFinding.id)}
-              className="w-full bg-[#1a2130] hover:bg-[#242f45] border border-[#2b3547] text-[#cbd5e1] py-1.5 rounded flex items-center justify-center gap-1.5 cursor-pointer text-[10px] font-bold"
-            >
-              <FileText className="w-3 h-3 text-[#38bdf8]" />
-              <span>{selectedFinding.addedToReport ? 'INCLUDED IN REPORT' : 'ADD TO REPORT EXHIBIT'}</span>
-            </button>
-
-            <button
-              onClick={() =>
-                onAddBookmark(
-                  selectedFinding.recordingId,
-                  selectedFinding.frameNumber,
-                  `${selectedFinding.type}: ${selectedFinding.cameraName}`
-                )
-              }
-              className="w-full bg-[#1a2130] hover:bg-[#242f45] border border-[#2b3547] text-[#cbd5e1] py-1.5 rounded flex items-center justify-center gap-1.5 cursor-pointer text-[10px] font-bold"
-            >
-              <Bookmark className="w-3 h-3 text-[#f59e0b]" />
-              <span>CREATE EVIDENCE BOOKMARK</span>
-            </button>
+              <button
+                onClick={() =>
+                  onAddBookmark(
+                    selectedFinding.recordingId,
+                    selectedFinding.frameNumber,
+                    `${selectedFinding.type}: ${selectedFinding.cameraName}`
+                  )
+                }
+                className="flex-1 bg-[#141b27] hover:bg-[#1c2738] border border-[#243144] text-[#cbd5e1] py-1.5 rounded text-[10px] font-semibold cursor-pointer"
+              >
+                Create Bookmark
+              </button>
+            </div>
           </div>
         </div>
       </div>
